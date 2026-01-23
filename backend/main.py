@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
+from flask_migrate import Migrate
 
 app = Flask(__name__)
 CORS(app)
@@ -13,6 +14,7 @@ class Base(DeclarativeBase):
   pass
 
 db = SQLAlchemy(app, model_class=Base)
+migrate = Migrate(app, db)
 
 class TodoItem(db.Model):
 
