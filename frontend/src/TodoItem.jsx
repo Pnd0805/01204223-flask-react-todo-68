@@ -4,38 +4,43 @@ import { useState } from 'react'
 
 
 function TodoItem({todo, toggleDone, deleteTodo, addNewComment}) {
-    const [newComment, setNewComment] = useState("");
+  const [newComment, setNewComment] = useState("");      // เพิ่ม state newComment
   return (
-    <li>
+      <li>
         <span className={todo.done ? "done" : ""}>{todo.title}</span>
         <button onClick={() => {toggleDone(todo.id)}}>Toggle</button>
         <button onClick={() => {deleteTodo(todo.id)}}>❌</button>
         {(todo.comments) && (todo.comments.length > 0) && (
-        <>
-            // ละไว้
-        </>
+          <>
+            <b>Comments ({todo.comments.length}):</b>
+            <ul>
+              {todo.comments.map(comment => (
+                <li key={comment.id}>{comment.message}</li>
+              ))}
+            </ul>
+          </>
         )}
+
+        {(!todo.comments) || (todo.comments.length == 0) && (
+            <span>No comments</span>
+        )}
+            
+
         <div className="new-comment-forms">
-        <input
-          type="text"
-
-          // แก้บรรทัดด้านล่าง
-          value={newComment}     // ของเก่าเป็น value={newComments[todo.id] || ""}
-
-
-          onChange={(e) => {
-            const value = e.target.value;
-
-            // แก้บรรทัดด้านล่าง
-            setNewComment(value);    // ของเดิม: setNewComments({ ...newComments, [todo.id]: value });
-          }}
-        />
-        <button onClick={() => {
+          <input
+            type="text"
+            value={newComment}
+            onChange={(e) => {
+              const value = e.target.value;
+              setNewComment(value);
+            }}
+          />
+          <button onClick={() => {
             addNewComment(todo.id, newComment);
             setNewComment("");
-        }}>Add Comment</button>
-      </div>
-    </li>
+          }}>Add Comment</button>            
+        </div>            
+      </li>
   )
 }
 
