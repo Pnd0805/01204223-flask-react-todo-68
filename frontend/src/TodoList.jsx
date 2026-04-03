@@ -14,7 +14,7 @@ function TodoList({ apiUrl }) {
 
   useEffect(() => {
     fetchTodoList();
-  }, [username]);   
+  }, [username]);
 
   async function fetchTodoList() {
     try {
@@ -23,14 +23,14 @@ function TodoList({ apiUrl }) {
           'Authorization': `Bearer ${accessToken}`
         }
       });
-      if (!response.ok) { 
+      if (!response.ok) {
         throw new Error('Network error');
       }
       const data = await response.json();
       setTodoList(data);
     } catch (err) {
       // alert("Failed to fetch todo list from backend. Make sure the backend is running.");
-        setTodoList([]);
+      setTodoList([]);
     }
   }
 
@@ -97,7 +97,7 @@ function TodoList({ apiUrl }) {
       const response = await fetch(delete_api_url, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${accessToken}` 
+          'Authorization': `Bearer ${accessToken}`
         }
       });
       if (response.ok) {
@@ -113,7 +113,7 @@ function TodoList({ apiUrl }) {
       <h1>Todo List</h1>
       <ul>
         {todoList.map(todo => (
-          <TodoItem 
+          <TodoItem
             key={todo.id}
             todo={todo}
             toggleDone={toggleDone}
@@ -122,13 +122,13 @@ function TodoList({ apiUrl }) {
           />
         ))}
       </ul>
-      New: <input type="text" value={newTitle} onChange={(e) => {setNewTitle(e.target.value)}} />
-      <button onClick={() => {addNewTodo()}}>Add</button>
-      <br/>
-      <a href="/about">About</a> 
-      <br/>
-      <a href="/login">Login</a>   
-      <br/>
+      New: <input type="text" value={newTitle} onChange={(e) => { setNewTitle(e.target.value) }} />
+      <button onClick={() => { addNewTodo() }}>Add</button>
+      <br />
+      <a href="/about">About</a>
+      <br />
+      <a href="/login">Login</a>
+      <br />
       {username && (
         <a href="#" onClick={(e) => { e.preventDefault(); logout(); }}>Logout</a>
       )}
