@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { vi } from 'vitest'
 
 beforeEach(() => {
-  global.fetch = vi.fn()
+  vi.stubGlobal('fetch', vi.fn());
 })
 
 vi.mock('/vite.svg', () => ({
@@ -14,24 +14,26 @@ const mockResponse = (body, ok = true) =>
   Promise.resolve({
     ok,
     json: () => Promise.resolve(body),
-});
+  });
 
 const todoItem1 = { id: 1, title: 'First todo', done: false, comments: [] };
-const todoItem2 = { id: 2, title: 'Second todo', done: false, comments: [
-  { id: 1, message: 'First comment' },
-  { id: 2, message: 'Second comment' },
-] };
+const todoItem2 = {
+  id: 2, title: 'Second todo', done: false, comments: [
+    { id: 1, message: 'First comment' },
+    { id: 2, message: 'Second comment' },
+  ]
+};
 
 const originalTodoList = [
   todoItem1,
   todoItem2,
 ]
 
-vi.mock('../context/AuthContext', () => ({
+vi.mock('../context/AuthContext.jsx', () => ({
   useAuth: vi.fn(),
 }));
 
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext.jsx';
 
 describe('TodoList', () => {
   beforeEach(() => {
@@ -49,7 +51,7 @@ describe('TodoList', () => {
   });
 
   it('renders correctly', async () => {
-    global.fetch.mockImplementationOnce(() =>
+    globalThis.fetch.mockImplementationOnce(() =>
       mockResponse(originalTodoList)
     );
 
@@ -61,17 +63,17 @@ describe('TodoList', () => {
     expect(await screen.findByText('Second comment')).toBeInTheDocument();
   });
 
-////////////////////
+  ////////////////////
 
-  it('toggles done on a todo item', async() => {
+  it('toggles done on a todo item', async () => {
     // เตรียมค่าสำหรับคืนหลังกด toggle done แล้ว
     const toggledTodoItem1 = { ...todoItem1, done: true };
 
     // mock fetch --- สังเกตว่าจะมีการเรียก fetch สองครั้ง จากการ init และจากการกดปุ่ม 
     //   สำหรับการเรียกแต่ละครั้งเราจะสามารถโปรแกรมคำตอบแยกกันได้ โดยเรียก mockImplementationOnce หลายครั้ง
     //   กล่าวคือ รอบแรกคืนรายการทั้งหมด  รอบที่สองคืนค่า todo item ที่แก้ค่าแล้ว
-    global.fetch
-      .mockImplementationOnce(() => mockResponse(originalTodoList))    
+    globalThis.fetch
+      .mockImplementationOnce(() => mockResponse(originalTodoList))
       .mockImplementationOnce(() => mockResponse(toggledTodoItem1));
 
     render(<TodoList />);
@@ -86,8 +88,8 @@ describe('TodoList', () => {
 
     // ตรวจสอบว่า todo item นั้นเปลี่ยนคลาสเป็น done แล้ว
     expect(await screen.findByText('First todo')).toHaveClass('done');
-    expect(global.fetch).toHaveBeenLastCalledWith(expect.stringMatching(/1\/toggle/), expect.anything());
+    expect(globalThis.fetch).toHaveBeenLastCalledWith(expect.stringMatching(/1\/toggle/), expect.anything());
 
-    
+
   });
 });
