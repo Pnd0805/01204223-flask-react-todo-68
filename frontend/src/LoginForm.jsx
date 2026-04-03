@@ -15,55 +15,40 @@ function LoginForm({ loginUrl }) {
   async function handleLogin(e) {
     e.preventDefault();
     try {
-      // ...
-      if (response.ok) {
-        const data = await response.json();
-        console.log(data);
-        //alert("Login successful.  access token = " + data.access_token);
-
-        // เรียกฟังก์ชัน login เพื่อเก็บ username และ token
-        login(username, data.access_token);
-        navigate('/');
-      } // ... else /  }
-    } catch (error) {
-      console.log("Error logging in:", error);
-    }
-
-    return (
-      <form onSubmit={(e) => { handleLogin(e) }}>
-        {errorMessage && <p>{errorMessage}</p>}
-        Username:
-        <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
-        <br />
-        Password:
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        <br />
-        <button type="submit">Login</button>
-        {loggedInUsername && <p>User {loggedInUsername} is already logged in.</p>}
-      </form>
-    );
-  }
-
-  async function handleLogin(e) {
-    e.preventDefault();
-    try {
       const response = await fetch(loginUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username: username, password: password }),
+        body: JSON.stringify({ username, password }),
       });
+      
       if (response.ok) {
         const data = await response.json();
-        console.log(data);
-        alert("Login successful.  access token = " + data.access_token);
+        console.log("Login successful", data);
+        login(username, data.access_token);
+        navigate('/');
       } else if (response.status === 401) {
         setErrorMessage("Invalid username or password");
       }
     } catch (error) {
       console.log("Error logging in:", error);
+      setErrorMessage("Network error, please try again.");
     }
   }
+
+  return (
+    <form onSubmit={handleLogin}>
+      {errorMessage && <p style={{color: 'red'}}>{errorMessage}</p>}
+      Username:
+      <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
+      <br />
+      Password:
+      <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+      <br />
+      <button type="submit">Login</button>
+      {loggedInUsername && <p>User {loggedInUsername} is already logged in.</p>}
+    </form>
+  );
 }
 export default LoginForm;

@@ -17,8 +17,15 @@ from flask_jwt_extended import JWTManager
 
 app = Flask(__name__)
 CORS(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI','sqlite:///todos.db') 
-app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY','fdslkfjsdlkufewhjroiewurewrew')
+
+try:
+    from local_config import CONFIG_DB_URI, CONFIG_JWT_SECRET
+except:
+    CONFIG_DB_URI = 'sqlite:///todos.db'
+    CONFIG_JWT_SECRET = 'fdslkfjsdlkufewhjroiewurewrew'
+
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI', CONFIG_DB_URI)
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', CONFIG_JWT_SECRET)
 
 db.init_app(app)
 migrate = Migrate(app, db)
@@ -133,3 +140,19 @@ def login():
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY','fdslkfjsdlkufewhjroiewurewrew')
 jwt = JWTManager(app)
 
+from flask import send_from_directory
+
+# Catch-all route: if the requested file exists in frontend-static, serve it;
+# otherwise fall back to serving the React app's index.html.
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_frontend(path):
+    static_dir = os.path.join(app.root_path, 'frontend-static')
+    # If a specific file is requested and exists, serve it
+    if path and os.path.isfile(os.path.join(static_dir, path)):
+        return send_from_directory('frontend-static', path)
+    # Otherwise serve the app entrypoint
+    return send_from_directory('frontend-static', 'index.html')
+
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
