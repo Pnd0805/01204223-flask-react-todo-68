@@ -1,23 +1,20 @@
 import { useState, useEffect } from 'react'
+import './App.css'
+import TodoItem from './TodoItem.jsx'
 import { useAuth } from './context/AuthContext.jsx';
-
 import './App.css'
 
-import TodoItem from './TodoItem.jsx'
-
-function TodoList({apiUrl}) {
-  const TODOLIST_API_URL = 'http://localhost:5000/api/todos/';
-
+function TodoList({ apiUrl }) {
+  const TODOLIST_API_URL = apiUrl;
   const [todoList, setTodoList] = useState([]);
   const [newTitle, setNewTitle] = useState("");
-  const { username, accessToken, logout } = useAuth();
-  // ... โค้ดเดิม
-
   const [newComments, setNewComments] = useState({});
+  const { username, accessToken, logout } = useAuth();
+
 
   useEffect(() => {
     fetchTodoList();
-  }, [username]);
+  }, [username]);   
 
   async function fetchTodoList() {
     try {
@@ -26,9 +23,14 @@ function TodoList({apiUrl}) {
           'Authorization': `Bearer ${accessToken}`
         }
       });
+      if (!response.ok) { 
+        throw new Error('Network error');
+      }
+      const data = await response.json();
+      setTodoList(data);
     } catch (err) {
-      //alert("Failed to fetch todo list from backend. Make sure the backend is running.");
-      setTodoList([]);
+      // alert("Failed to fetch todo list from backend. Make sure the backend is running.");
+        setTodoList([]);
     }
   }
 
@@ -37,6 +39,9 @@ function TodoList({apiUrl}) {
     try {
       const response = await fetch(toggle_api_url, {
         method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
       })
       if (response.ok) {
         const updatedTodo = await response.json();
@@ -53,6 +58,7 @@ function TodoList({apiUrl}) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
         },
         body: JSON.stringify({ 'title': newTitle }),
       });
@@ -66,11 +72,33 @@ function TodoList({apiUrl}) {
     }
   }
 
+  async function addNewComment(todoId, newComment) {
+    try {
+      const url = `${TODOLIST_API_URL}${todoId}/comments/`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({ 'message': newComment }),
+      });
+      if (response.ok) {
+        await fetchTodoList();
+      }
+    } catch (error) {
+      console.error("Error adding new comment:", error);
+    }
+  }
+
   async function deleteTodo(id) {
     const delete_api_url = `${TODOLIST_API_URL}${id}/`
     try {
       const response = await fetch(delete_api_url, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${accessToken}` 
+        }
       });
       if (response.ok) {
         setTodoList(todoList.filter(todo => todo.id !== id));
@@ -80,51 +108,31 @@ function TodoList({apiUrl}) {
     }
   }
 
-  async function addNewComment(todoId, newComment) {     // เพิ่ม parameter
-    try {
-      const url = `${TODOLIST_API_URL}${todoId}/comments/`;
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 'message': newComment }),    // ใช้ newComment
-      });
-      if (response.ok) {
-        
-        await fetchTodoList();
-      }
-    } catch (error) {
-      console.error("Error adding new comment:", error);
-    }
-  }
-
   return (
     <>
       <h1>Todo List</h1>
       <ul>
         {todoList.map(todo => (
           <TodoItem 
-            key={todo.id} 
+            key={todo.id}
             todo={todo}
             toggleDone={toggleDone}
             deleteTodo={deleteTodo}
             addNewComment={addNewComment}
           />
         ))}
-
       </ul>
       New: <input type="text" value={newTitle} onChange={(e) => {setNewTitle(e.target.value)}} />
       <button onClick={() => {addNewTodo()}}>Add</button>
-    <br/>
-      <a href="/about">About</a>
       <br/>
-      <a href="/login">Login</a> 
+      <a href="/about">About</a> 
+      <br/>
+      <a href="/login">Login</a>   
+      <br/>
       {username && (
-        <a href="#" onClick={(e) => {e.preventDefault(); logout();}}>Logout</a> 
+        <a href="#" onClick={(e) => { e.preventDefault(); logout(); }}>Logout</a>
       )}
     </>
   )
 }
-
-export default TodoList;    // อย่าลืมแก้ export
+export default TodoList
